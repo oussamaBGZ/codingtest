@@ -1,6 +1,3 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
-
-## Getting Started
 
 First, run the development server:
 
@@ -14,25 +11,24 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+For the second test this is the sql query:
+```
+SELECT u.name, u.email, SUM(o.quantity * p.price) AS total_spent
+FROM users u
+JOIN orders o ON u.id = o.user_id
+JOIN products p ON o.product_id = p.id
+WHERE p.category = 'Electronics'
+GROUP BY u.id, u.name, u.email
+HAVING COUNT(o.id) >= 3 AND total_spent > 1000
+ORDER BY total_spent DESC;
+```
+Explanation:
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+The query starts by selecting the user's name (u.name), email (u.email), and the total amount spent on "Electronics" orders (SUM(o.quantity * p.price) AS total_spent).
+The FROM clause specifies the tables being used: users u, orders o, and products p.
+The JOIN statements are used to establish the relationships between the tables based on the foreign keys (user_id and product_id).
+The WHERE clause filters the results to only include rows where the product category is "Electronics".
+The GROUP BY clause groups the results by the user's ID, name, and email.
+The HAVING clause applies additional conditions on the grouped data. It ensures that the user has made at least 3 orders (COUNT(o.id) >= 3) and has spent more than $1000 on "Electronics" orders (total_spent > 1000).
+Finally, the ORDER BY clause sorts the results in descending order based on the total amount spent.

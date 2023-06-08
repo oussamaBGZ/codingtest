@@ -2,10 +2,49 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
+import { DateRangePicker, Range, RangeKeyDict } from 'react-date-range';
+import { SyntheticEvent, useEffect, useState } from 'react';
+import axios from 'axios';
+import Link from 'next/link';
+import Asteroids, { selectedAstro, selectedAstroProps } from '@/components/Asteroids';
 
-const inter = Inter({ subsets: ['latin'] })
+type Target<T extends string> = EventTarget & {
+  [key in T]: {
+    value: string
+  }
+}
 
 export default function Home() {
+  const [dateVal, setDateVal] = useState<{ [key in string]: any }>({})
+  const [selectedAstro, setSelectedAstro] = useState<selectedAstro>()
+  const [err, setErr] = useState<null | string>(null)
+  const [disabled, setDisabled] = useState<boolean>(false)
+
+  const formatDate = (date: string) => {
+    const dateString = new Date(date)
+    return dateString.getFullYear() + '-' + ("0" + (dateString.getMonth() + 1)).slice(-2) + '-' + ("0" + dateString.getDate()).slice(-2)
+  }
+
+  const handleSelect = async (e: SyntheticEvent) => {
+    e.preventDefault()
+    setDisabled(true)
+    setDateVal({})
+    setErr(null)
+    const target = e.target as Target<"minDate" | "maxDate">
+    try {
+      const response = await axios.get<{
+        near_earth_objects: {
+          [key in string]: selectedAstro[]
+        }
+      }>(`/api/search?minDate=${formatDate(target.minDate.value)}&maxDate=${formatDate(target.maxDate.value)}`)
+      setDisabled(false)
+      setDateVal(response.data.near_earth_objects)
+    } catch (e: any) {
+      setErr(e.response.data.error_message)
+      setDisabled(false)
+    }
+  }
+
   return (
     <>
       <Head>
@@ -14,99 +53,32 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={`${styles.main} ${inter.className}`}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>pages/index.tsx</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
-            </a>
-          </div>
-        </div>
-
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-        </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
+      <main className={styles.main}>
+        <div>
+          {selectedAstro ?
+            <Asteroids selectedAstro={selectedAstro} setSelectedAstro={setSelectedAstro} />
+            : <> <form onSubmit={handleSelect}>
+              <label>Start date: </label>
+              <input type="date" name="minDate" id="minDate" placeholder='Start date' required />
+              <br />
+              <label>End date: </label>
+              <input type="date" name="maxDate" id="maxDate" placeholder='End date' required />
+              <button type='submit' disabled={disabled}>Submit</button>
+            </form>
+              <div>
+                {
+                  Object.keys(dateVal).sort()?.map(el => <div key={el}>
+                    <h3>{el}</h3>
+                    {dateVal[el].map((Element: any) =>
+                      <ul key={Element.id}>
+                        <li onClick={() => setSelectedAstro(Element)}>{Element.name}
+                        </li>
+                      </ul>
+                    )}
+                  </div>)
+                }
+                <p className={styles['error-code']}>{err}</p>
+              </div></>}
         </div>
       </main>
     </>
