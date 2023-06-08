@@ -2,7 +2,6 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
-import { DateRangePicker, Range, RangeKeyDict } from 'react-date-range';
 import { SyntheticEvent, useEffect, useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
