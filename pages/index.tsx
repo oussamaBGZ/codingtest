@@ -1,11 +1,8 @@
 import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
-import { SyntheticEvent, useEffect, useState } from 'react';
+import { SyntheticEvent, useState } from 'react';
 import axios from 'axios';
-import Link from 'next/link';
-import Asteroids, { selectedAstro, selectedAstroProps } from '@/components/Asteroids';
+import Asteroids, { selectedAstro } from '@/components/Asteroids';
 
 type Target<T extends string> = EventTarget & {
   [key in T]: {
